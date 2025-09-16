@@ -78,7 +78,18 @@ if st.button("Predict Dropout Risk"):
     # --- Display the results ---
     st.subheader("Prediction Result")
     st.metric(label="Predicted Dropout Probability", value=f"{prediction_proba * 100:.2f}%")
-    
+
+    # --- NEW: Visualization for single student ---
+    fig, ax = plt.subplots(figsize=(6, 2))
+    ax.barh(['Predicted Risk'], [prediction_proba], color=['red' if prediction_proba > 0.5 else 'green'])
+    ax.set_xlim(0, 1.0)
+    ax.axvline(x=0.5, color='gray', linestyle='--', label='50% Threshold')
+    ax.legend()
+    ax.set_xlabel('Probability')
+    ax.set_title('Visualizing Dropout Probability')
+    st.pyplot(fig)
+    # --- END NEW VISUALIZATION ---    
+
     if prediction_proba > 0.5:
         st.error("High Risk of Dropout")
         st.write("It is highly recommended that you seek immediate academic counseling to discuss strategies for success and support systems.")
@@ -224,3 +235,4 @@ if uploaded_file is not None:
             st.warning("No numeric columns found to generate the correlation heatmap.")
     except Exception as e:
         st.error(f"An error occurred while processing the file: {e}")
+
