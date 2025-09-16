@@ -116,7 +116,11 @@ if uploaded_file is not None:
             st.error("The uploaded file is missing some of the required columns. Please check your data.")
             st.write("Expected columns:", required_features)
             st.stop()
-
+        
+        # --- FIX: Convert columns to numeric before plotting ---
+        for col in required_features:
+            df[col] = pd.to_numeric(df[col], errors='coerce')
+        
         # Get prediction probabilities for all students
         df['Predicted Dropout Probability'] = model.predict_proba(df[required_features])[:, 1]
         
@@ -125,7 +129,45 @@ if uploaded_file is not None:
         
         st.subheader("Prediction Results")
         st.dataframe(df)
+        
+        # --- NEW SECTION: Analysis and Insights (Now wrapped in an expander) ---
+        with st.expander("Expand to view Analysis and Insights 📈"):
+            st.write("Based on the uploaded dataset and the visualizations, here are some key insights:")
+        
+            # Get the total number of students and high-risk students
+            total_students = len(df)
+            high_risk_students = len(df[df['Predicted Status'] == 'High Risk'])
+            low_risk_students = len(df[df['Predicted Status'] == 'Low Risk'])
+            
+            # Display key metrics
+            st.markdown(f"**Total Students Analyzed:** {total_students}")
+            st.markdown(f"**High Risk of Dropout:** {high_risk_students} ({high_risk_students / total_students:.1%})")
+            st.markdown(f"**Low Risk of Dropout:** {low_risk_students} ({low_risk_students / total_students:.1%})")
+            
+            # Provide insights based on data
+            st.subheader("Key Findings:")
+            
+            # Insight 1: Based on the overall dropout risk percentage
+            risk_percentage = high_risk_students / total_students
+            if risk_percentage > 0.4:
+                st.write("💡 **High-Level Concern:** The data suggests a significantly high percentage of students are at risk of dropping out. This indicates a potential systemic issue that requires a focused intervention strategy.")
+            elif risk_percentage > 0.2:
+                st.write("💡 **Moderate Concern:** There is a notable portion of students at risk. Targeted support programs could be highly effective in reducing this number.")
+            else:
+                st.write("💡 **Low-Level Concern:** The overall dropout risk is low. The system appears to be working well, but a few targeted interventions could further improve student retention.")
+            
+            # Insight 2: Based on the grade distribution chart
+            st.write("📊 **Grade Performance:** The 'Grade Distribution by Predicted Dropout Risk' chart shows a clear inverse relationship. Students with lower grades in the second semester are much more likely to be predicted as 'High Risk'. This reinforces the importance of academic support and tutoring programs for struggling students.")
+            
+            # Insight 3: Based on the correlation heatmap
+            st.write("🔗 **Feature Relationships:** The correlation heatmap provides a deeper look into the data. Look for features with strong positive or negative correlations to identify potential drivers of dropout. For example, a strong negative correlation between 'Tuition fees up to date' and 'Predicted Dropout Probability' could highlight a financial barrier to student success.")
+            
+         
+            #st.markdown("---")
+            #st.markdown("✨ **Next Steps:** Use these insights to create actionable plans, such as developing academic support programs, providing financial aid counseling, or running mentorship initiatives.")
+        
 
+        st.markdown("---")
         st.subheader("Visualizations from Your Data")
 
         # --- Visualization 1: Predicted Status Distribution ---
@@ -137,15 +179,13 @@ if uploaded_file is not None:
         st.pyplot(fig)
 
         # --- Visualization 2: Relationship between Grade and Dropout Risk ---
-        fig, ax = plt.subplots(figsize=(7, 4)) # Adjusted figsize
+        fig, ax = plt.subplots(figsize=(7, 4))
         sns.histplot(data=df, x='Curricular units 2nd sem (grade)', hue='Predicted Status', kde=True, ax=ax)
         plt.title('Grade Distribution by Predicted Dropout Risk')
         plt.xlabel('Curricular units 2nd sem (grade)')
         plt.ylabel('Count')
         st.pyplot(fig)
 
-        # --- Additional Visualizations from User Request ---
-        
         # 3. Bar chart of predicted dropout status
         fig, ax = plt.subplots(figsize=(6, 4))
         sns.countplot(x='Predicted Status', data=df, ax=ax)
@@ -160,25 +200,27 @@ if uploaded_file is not None:
         
         for c in numeric_cols_to_plot:
             if c in df.columns:
-                fig, ax = plt.subplots(figsize=(7, 4)) # Adjusted figsize
+                fig, ax = plt.subplots(figsize=(7, 4))
                 sns.histplot(df[c].dropna(), kde=False, ax=ax)
                 plt.title(f'Distribution of {c}')
                 st.pyplot(fig)
 
-        # 5. Correlation Heatmap
+        # --- NEW: Visualization 5: Correlation Heatmap ---
         st.subheader("Correlation Heatmap")
         
         # Select only the numeric columns for the heatmap
         numeric_df = df.select_dtypes(include=['number'])
 
-        # Calculate the correlation matrix
-        corr_matrix = numeric_df.corr()
+        if not numeric_df.empty:
+            # Calculate the correlation matrix
+            corr_matrix = numeric_df.corr()
 
-        # Plot the heatmap
-        fig, ax = plt.subplots(figsize=(12, 10))
-        sns.heatmap(corr_matrix, annot=True, fmt=".2f", cmap='coolwarm', ax=ax)
-        ax.set_title('Correlation Matrix of Features')
-        st.pyplot(fig)
-
+            # Plot the heatmap
+            fig, ax = plt.subplots(figsize=(12, 10))
+            sns.heatmap(corr_matrix, annot=True, fmt=".2f", cmap='coolwarm', ax=ax)
+            ax.set_title('Correlation Matrix of Features', fontsize=16)
+            st.pyplot(fig)
+        else:
+            st.warning("No numeric columns found to generate the correlation heatmap.")
     except Exception as e:
         st.error(f"An error occurred while processing the file: {e}")
