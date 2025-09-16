@@ -165,5 +165,20 @@ if uploaded_file is not None:
                 plt.title(f'Distribution of {c}')
                 st.pyplot(fig)
 
+        # 5. Correlation Heatmap
+        st.subheader("Correlation Heatmap")
+        
+        # Select only the numeric columns for the heatmap
+        numeric_df = df.select_dtypes(include=['number'])
+
+        # Calculate the correlation matrix
+        corr_matrix = numeric_df.corr()
+
+        # Plot the heatmap
+        fig, ax = plt.subplots(figsize=(12, 10))
+        sns.heatmap(corr_matrix, annot=True, fmt=".2f", cmap='coolwarm', ax=ax)
+        ax.set_title('Correlation Matrix of Features')
+        st.pyplot(fig)
+
     except Exception as e:
         st.error(f"An error occurred while processing the file: {e}")
