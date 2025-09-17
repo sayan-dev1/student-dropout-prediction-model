@@ -79,17 +79,18 @@ if st.button("Predict Dropout Risk"):
     st.subheader("Prediction Result")
     st.metric(label="Predicted Dropout Probability", value=f"{prediction_proba * 100:.2f}%")
 
-    # --- NEW: Visualization for single student ---
-    fig, ax = plt.subplots(figsize=(6, 2))
+    # --- Visualization for single student ---
+    fig, ax = plt.subplots(figsize=(6, 1.0))
     ax.barh(['Predicted Risk'], [prediction_proba], color=['red' if prediction_proba > 0.5 else 'green'])
     ax.set_xlim(0, 1.0)
     ax.axvline(x=0.5, color='gray', linestyle='--', label='50% Threshold')
+    ax.set_xticks(ticks=[0, 0.25, 0.5, 0.75, 1.0], labels=['0%', '25%', '50%', '75%', '100%'])
     ax.legend()
     ax.set_xlabel('Probability')
     ax.set_title('Visualizing Dropout Probability')
     st.pyplot(fig)
-    # --- END NEW VISUALIZATION ---    
-
+    # --- END NEW VISUALIZATION ---
+    
     if prediction_proba > 0.5:
         st.error("High Risk of Dropout")
         st.write("It is highly recommended that you seek immediate academic counseling to discuss strategies for success and support systems.")
@@ -115,7 +116,6 @@ if uploaded_file is not None:
         st.success("File uploaded successfully!")
         
         # --- Make Predictions ---
-        # The model expects a specific list of columns. We check if they exist.
         required_features = [
             'Age at enrollment', 'Marital status', 'Scholarship holder', 'Tuition fees up to date', 'Gender',
             'Previous qualification', 'Curricular units 1st sem (approved)', 'Curricular units 1st sem (grade)',
@@ -173,11 +173,9 @@ if uploaded_file is not None:
             # Insight 3: Based on the correlation heatmap
             st.write("🔗 **Feature Relationships:** The correlation heatmap provides a deeper look into the data. Look for features with strong positive or negative correlations to identify potential drivers of dropout. For example, a strong negative correlation between 'Tuition fees up to date' and 'Predicted Dropout Probability' could highlight a financial barrier to student success.")
             
-         
-            #st.markdown("---")
-            #st.markdown("✨ **Next Steps:** Use these insights to create actionable plans, such as developing academic support programs, providing financial aid counseling, or running mentorship initiatives.")
+            st.markdown("---")
+            st.markdown("✨ **Next Steps:** Use these insights to create actionable plans, such as developing academic support programs, providing financial aid counseling, or running mentorship initiatives.")
         
-
         st.markdown("---")
         st.subheader("Visualizations from Your Data")
 
@@ -236,3 +234,58 @@ if uploaded_file is not None:
     except Exception as e:
         st.error(f"An error occurred while processing the file: {e}")
 
+st.markdown("---")
+st.header("3. Model Evaluation & Explainability")
+st.write("Understand the model's overall performance and which features are most important.")
+
+# --- LOAD METRICS ---
+try:
+    with open('model_metrics.pkl', 'rb') as f:
+        metrics = pickle.load(f)
+    accuracy = metrics['accuracy']
+    precision = metrics['precision']
+    recall = metrics['recall']
+except FileNotFoundError:
+    accuracy = "--"
+    precision = "--"
+    recall = "--"
+    st.warning("`model_metrics.pkl` not found. Please run your `model_training.py` script to generate this file.")
+except Exception as e:
+    accuracy = "--"
+    precision = "--"
+    recall = "--"
+    st.error(f"Error loading metrics: {e}")
+
+# --- DISPLAY METRICS ---
+st.subheader("Model Performance Metrics")
+st.write("This section shows the model's performance on a held-out test set.")
+col_acc, col_prec, col_rec = st.columns(3)
+
+with col_acc:
+    st.info("💡 **Accuracy:** Percentage of correct predictions.")
+    st.metric(label="Accuracy", value=f"{accuracy:.2f}" if isinstance(accuracy, (int, float)) else accuracy)
+with col_prec:
+    st.info("💡 **Precision:** Of all predicted high-risk students, how many were actually high-risk?")
+    st.metric(label="Precision", value=f"{precision:.2f}" if isinstance(precision, (int, float)) else precision)
+with col_rec:
+    st.info("💡 **Recall:** Of all actual high-risk students, how many did the model find?")
+    st.metric(label="Recall", value=f"{recall:.2f}" if isinstance(recall, (int, float)) else recall)
+
+
+# --- LOAD FEATURE IMPORTANCE ---
+try:
+    with open('feature_importance.pkl', 'rb') as f:
+        importance_df = pickle.load(f)
+        if importance_df is None:
+            st.warning("Feature importance data is `None`. Your model type may not support it or it was not saved correctly.")
+        else:
+            fig, ax = plt.subplots(figsize=(8, 6))
+            sns.barplot(x='Importance', y='Feature', data=importance_df.head(10), ax=ax, palette='viridis') # Display top 10 features
+            ax.set_title('Top 10 Feature Importance')
+            ax.set_xlabel('Importance Score')
+            ax.set_ylabel('Features')
+            st.pyplot(fig)
+except FileNotFoundError:
+    st.warning("`feature_importance.pkl` not found. Please run your `model_training.py` script to generate this file.")
+except Exception as e:
+    st.error(f"An error occurred while plotting feature importance: {e}")
