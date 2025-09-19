@@ -110,9 +110,9 @@ with col1:
     debtor = st.selectbox("Debtor", [0, 1], format_func=lambda x: {0: "No", 1: "Yes"}.get(x, x))
 
 with col2:
-    sem1_approved = st.number_input("Curricular units 1st sem (approved)", min_value=0, value=10)
+    sem1_approved = st.number_input("Curricular units 1st sem (passed)", min_value=0, value=10)
     sem1_grade = st.number_input("Curricular units 1st sem (grade)", min_value=0.0, value=13.0)
-    sem2_approved = st.number_input("Curricular units 2nd sem (approved)", min_value=0, value=10)
+    sem2_approved = st.number_input("Curricular units 2nd sem (passed)", min_value=0, value=10)
     sem2_grade = st.number_input("Curricular units 2nd sem (grade)", min_value=0.0, value=13.0)
     daytime_attendance = st.selectbox("Daytime/evening attendance", [0, 1], format_func=lambda x: {0: "Evening", 1: "Daytime"}.get(x, x))
     
