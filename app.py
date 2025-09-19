@@ -60,42 +60,90 @@ qualification_mapping = {
     17: 'High School - Technical'
 }
 
+# --- Occupation mapping for the dropdown ---
+occupation_mapping = {
+    0: 'Student',
+    1: 'Industrial professions',
+    2: 'Intermediate professions',
+    3: 'Managerial professions',
+    4: 'Office workers',
+    5: 'Self-employed',
+    6: 'Liberal professions',
+    7: 'Farmer',
+    8: 'Skilled workers',
+    9: 'Unemployed',
+    10: 'Military',
+    11: 'Other'
+}
+
+# --- Course mapping for the dropdown ---
+course_mapping = {
+    33: 'Biofuel Production Technologies',
+    171: 'Animation and Multimedia Design',
+    8014: 'Social Service (evening attendance)',
+    9003: 'Agronomy',
+    9070: 'Communication Design',
+    9085: 'Veterinary Nursing',
+    9119: 'Informatics Engineering',
+    9130: 'Equinculture',
+    9147: 'Management',
+    9238: 'Social Service',
+    9254: 'Tourism',
+    9500: 'Nursing',
+    9556: 'Oral Hygiene'
+}
+
 with col1:
     age = st.number_input("Age at enrollment", min_value=17, max_value=80, value=20)
     marital_status = st.selectbox("Marital status", [1, 2, 3, 4, 5, 6], format_func=lambda x: {1: "Single", 2: "Married", 3: "Widower", 4: "Divorced", 5: "Facto union", 6: "Legally separated"}.get(x, x))
     scholarship_holder = st.selectbox("Scholarship holder", [0, 1], format_func=lambda x: {0: "No", 1: "Yes"}.get(x, x))
     tuition_fees_up_to_date = st.selectbox("Tuition fees up to date", [0, 1], format_func=lambda x: {0: "No", 1: "Yes"}.get(x, x))
     gender = st.selectbox("Gender", [0, 1], format_func=lambda x: {0: "Female", 1: "Male"}.get(x, x))
-    # UPDATED: Use the new qualification mapping
     previous_qualification = st.selectbox(
         "Previous qualification",
         options=list(qualification_mapping.keys()),
         format_func=lambda x: qualification_mapping.get(x, x)
     )
     unemployment_rate = st.number_input("Unemployment rate", min_value=0.0, value=10.0)
+    
+    # NEW INPUT FIELD
+    debtor = st.selectbox("Debtor", [0, 1], format_func=lambda x: {0: "No", 1: "Yes"}.get(x, x))
 
 with col2:
     sem1_approved = st.number_input("Curricular units 1st sem (approved)", min_value=0, value=10)
     sem1_grade = st.number_input("Curricular units 1st sem (grade)", min_value=0.0, value=13.0)
     sem2_approved = st.number_input("Curricular units 2nd sem (approved)", min_value=0, value=10)
     sem2_grade = st.number_input("Curricular units 2nd sem (grade)", min_value=0.0, value=13.0)
-    mother_qualification = st.number_input("Mother's qualification", min_value=1, max_value=44, value=1)
-    father_qualification = st.number_input("Father's qualification", min_value=1, max_value=44, value=1)
     daytime_attendance = st.selectbox("Daytime/evening attendance", [0, 1], format_func=lambda x: {0: "Evening", 1: "Daytime"}.get(x, x))
+    
+    # UPDATED: Use a selectbox with descriptive labels for Course
+    course = st.selectbox(
+        "Course",
+        options=list(course_mapping.keys()),
+        format_func=lambda x: course_mapping.get(x, x)
+    )
+    
+    # UPDATED: Use a selectbox with descriptive labels for Parent's occupation
+    fathers_occupation = st.selectbox(
+        "Parents' occupation",
+        options=list(occupation_mapping.keys()),
+        format_func=lambda x: occupation_mapping.get(x, x)
+    )
 
 # The 'Predict' button is placed after all the inputs
 if st.button("Predict Dropout Risk"):
     # Create a DataFrame with the user's input.
+    # UPDATED: Ensure the column order matches the model_training.py script
     input_data = pd.DataFrame([[
         age, marital_status, scholarship_holder, tuition_fees_up_to_date, gender, 
         previous_qualification, sem1_approved, sem1_grade, sem2_approved, sem2_grade, 
-        mother_qualification, father_qualification, daytime_attendance, unemployment_rate
+        course, fathers_occupation, debtor, daytime_attendance, unemployment_rate
     ]],
     columns=[
         'Age at enrollment', 'Marital status', 'Scholarship holder', 'Tuition fees up to date', 'Gender',
         'Previous qualification', 'Curricular units 1st sem (approved)', 'Curricular units 1st sem (grade)',
         'Curricular units 2nd sem (approved)', 'Curricular units 2nd sem (grade)',
-        "Mother's qualification", "Father's qualification", 'Daytime/evening attendance', 'Unemployment rate'
+        'Course', "Father's occupation", 'Debtor', 'Daytime/evening attendance', 'Unemployment rate'
     ])
     
     # Get the prediction probability
@@ -142,11 +190,12 @@ if uploaded_file is not None:
         st.success("File uploaded successfully!")
         
         # --- Make Predictions ---
+        # UPDATED: Ensure this list matches the selected_features in model_training.py
         required_features = [
             'Age at enrollment', 'Marital status', 'Scholarship holder', 'Tuition fees up to date', 'Gender',
             'Previous qualification', 'Curricular units 1st sem (approved)', 'Curricular units 1st sem (grade)',
             'Curricular units 2nd sem (approved)', 'Curricular units 2nd sem (grade)',
-            "Mother's qualification", "Father's qualification", 'Daytime/evening attendance', 'Unemployment rate'
+            'Course', "Father's occupation", 'Debtor', 'Daytime/evening attendance', 'Unemployment rate'
         ]
 
         if not set(required_features).issubset(df.columns):
