@@ -39,13 +39,39 @@ st.write("Enter the following student details to get a prediction:")
 # Create input columns for better layout
 col1, col2 = st.columns(2)
 
+# --- Qualification mapping for the dropdown ---
+qualification_mapping = {
+    1: 'Secondary Education', 
+    2: 'Higher Education - Bachelor', 
+    3: 'Higher Education - Master',
+    4: 'Higher Education - Doctorate', 
+    5: 'Technical or Professional Training', 
+    6: 'Other',
+    7: 'Secondary Education - Vocational', 
+    8: 'Higher Education - Polytechnic Bachelor',
+    9: 'Higher Education - Polytechnic Master', 
+    10: 'Technical Certificate',
+    11: 'Higher Education - Unspecified', 
+    12: 'No Formal Qualification', 
+    13: 'Middle School',
+    14: 'Primary School', 
+    15: 'Further Vocational Training', 
+    16: 'High School - Academic',
+    17: 'High School - Technical'
+}
+
 with col1:
     age = st.number_input("Age at enrollment", min_value=17, max_value=80, value=20)
     marital_status = st.selectbox("Marital status", [1, 2, 3, 4, 5, 6], format_func=lambda x: {1: "Single", 2: "Married", 3: "Widower", 4: "Divorced", 5: "Facto union", 6: "Legally separated"}.get(x, x))
     scholarship_holder = st.selectbox("Scholarship holder", [0, 1], format_func=lambda x: {0: "No", 1: "Yes"}.get(x, x))
     tuition_fees_up_to_date = st.selectbox("Tuition fees up to date", [0, 1], format_func=lambda x: {0: "No", 1: "Yes"}.get(x, x))
     gender = st.selectbox("Gender", [0, 1], format_func=lambda x: {0: "Female", 1: "Male"}.get(x, x))
-    previous_qualification = st.selectbox("Previous qualification", list(range(1, 18)), format_func=lambda x: str(x))
+    # UPDATED: Use the new qualification mapping
+    previous_qualification = st.selectbox(
+        "Previous qualification",
+        options=list(qualification_mapping.keys()),
+        format_func=lambda x: qualification_mapping.get(x, x)
+    )
     unemployment_rate = st.number_input("Unemployment rate", min_value=0.0, value=10.0)
 
 with col2:
