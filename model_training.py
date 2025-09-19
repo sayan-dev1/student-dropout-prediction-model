@@ -19,6 +19,8 @@ df = pd.read_csv('dataset.csv')
 df['Target'] = df['Target'].map({'Dropout': 1, 'Graduate': 0, 'Enrolled': 0})
 
 # --- 3. Select Features for the Model ---
+# UPDATED: 'Father's qualification' and 'Mother's qualification' have been removed.
+# NEW: 'Course', 'Father\'s occupation', and 'Debtor' have been added.
 selected_features = [
     'Age at enrollment',
     'Marital status',
@@ -30,8 +32,9 @@ selected_features = [
     'Curricular units 1st sem (grade)',
     'Curricular units 2nd sem (approved)',
     'Curricular units 2nd sem (grade)',
-    "Father's qualification",
-    "Mother's qualification",
+    'Course',
+    "Father's occupation",
+    'Debtor',
     'Daytime/evening attendance',
     'Unemployment rate'
 ]
@@ -43,6 +46,7 @@ y = df['Target']
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
 
 # --- 4. Identify Feature Types and Create Preprocessing Pipelines ---
+# Note: 'Course', "Father's occupation", and 'Debtor' will be handled automatically if they are categorical
 numerical_features = X.select_dtypes(include=['int64', 'float64']).columns
 categorical_features = X.select_dtypes(include=['object']).columns
 
